@@ -1,0 +1,19 @@
+# Środowisko wirtualne
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+
+# Logi i checkpointy z treningu
+runs/
+wandb/
+checkpoints/
+*.pt
+*.pth
