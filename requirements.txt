@@ -1,0 +1,8 @@
+mpe2==1.1.1
+pettingzoo==1.27.0
+gymnasium==1.4.0
+numpy
+matplotlib
+imageio
+imageio-ffmpeg
+pillow
