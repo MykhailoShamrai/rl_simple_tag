@@ -1,7 +1,7 @@
 """Nagrywa film z działania losowego agenta (wszyscy agenci wybierają akcje losowo).
 
 Użycie:
-    python record_random.py --episodes 4 --max-cycles 50 --out media/random_agent.mp4
+    python record_random.py --episodes 4 --max-cycles 50 --seed 15 --out media/random_agent.mp4
 """
 
 import argparse
@@ -17,10 +17,14 @@ from tag_utils import POLICIES, make_env, run_episode
 def annotate(frame, text):
     img = Image.fromarray(frame)
     draw = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("DejaVuSans.ttf", 22)
-    except OSError:
-        font = ImageFont.load_default()
+    for name in ("DejaVuSans.ttf", "arial.ttf", "Arial.ttf"):  # Linux / Windows / macOS
+        try:
+            font = ImageFont.truetype(name, 22)
+            break
+        except OSError:
+            continue
+    else:
+        font = ImageFont.load_default(size=22)
     draw.text((12, 10), text, fill=(0, 0, 0), font=font)
     return np.asarray(img)
 
@@ -29,7 +33,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episodes", type=int, default=4)
     ap.add_argument("--max-cycles", type=int, default=50)
-    ap.add_argument("--seed", type=int, default=0)
+    # seed 15: epizody 15-18, z czego ostatni zawiera złapanie (losowe drapieżniki łapią ofiarę
+    # w ~12% epizodów po 50 kroków, więc przy seedzie 0 film nie pokazywał żadnej kolizji)
+    ap.add_argument("--seed", type=int, default=15)
     ap.add_argument("--fps", type=int, default=10)
     ap.add_argument("--out", default="media/random_agent.mp4")
     args = ap.parse_args()
@@ -37,13 +43,12 @@ def main():
     env = make_env(render_mode="rgb_array", max_cycles=args.max_cycles)
     video = []
     for ep in range(args.episodes):
-        frames = []
-        m = run_episode(env, POLICIES["random"], POLICIES["random"], args.seed + ep, frames)
+        frames, coll = [], []
+        m = run_episode(env, POLICIES["random"], POLICIES["random"], args.seed + ep, frames, coll)
         print(f"epizod {ep}: {m}")
-        for t, f in enumerate(frames):
+        for t, (f, c) in enumerate(zip(frames, coll)):
             video.append(annotate(
-                f, f"Losowy agent | epizod {ep + 1}  krok {t}/{args.max_cycles}  "
-                   f"kolizje w epizodzie: {m['collisions']}"))
+                f, f"Losowy agent | epizod {ep + 1}  krok {t}/{args.max_cycles}  kolizje: {c}"))
         video.extend([video[-1]] * args.fps)  # krótka pauza między epizodami
     env.close()
 

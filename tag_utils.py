@@ -64,8 +64,11 @@ POLICIES = {
 }
 
 
-def run_episode(env, adv_policy, prey_policy, seed, frames=None):
+def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None):
     """Rozgrywa jeden epizod i zwraca słownik metryk.
+
+    Jeśli podano listę `frames`, dopisywane są do niej klatki renderu; jeśli `coll_trace`,
+    to skumulowana liczba kolizji po każdej klatce (do podpisów w filmie).
 
     Metryki:
       adv_return      – zwrot drużyny drapieżników (nagroda wspólna, liczona dla jednego adwersarza)
@@ -88,6 +91,8 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None):
              first_catch=np.nan, boundary_pen=0.0, dist_sum=0.0, steps=0)
     if frames is not None:
         frames.append(env.render())
+    if coll_trace is not None:
+        coll_trace.append(0)
 
     while env.agents:
         actions = {
@@ -112,6 +117,8 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None):
             m["dist_sum"] += min(np.linalg.norm(p.state.p_pos - a.state.p_pos) for a in advs)
         if frames is not None:
             frames.append(env.render())
+        if coll_trace is not None:
+            coll_trace.append(m["collisions"])
 
     m["caught"] = int(m["collisions"] > 0)
     m["mean_min_dist"] = m.pop("dist_sum") / (m["steps"] * len(prey))

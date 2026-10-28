@@ -15,7 +15,7 @@ import numpy as np
 
 from tag_utils import POLICIES, make_env, run_episode
 
-METRICS = ["adv_return", "prey_return", "collisions", "caught", "first_catch",
+METRICS = ["adv_return", "prey_return", "collisions", "caught", "caught_steps", "first_catch",
            "boundary_pen", "mean_min_dist"]
 
 
