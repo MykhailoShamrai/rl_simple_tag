@@ -47,6 +47,15 @@ Pojedyncze fazy: `--phase 1|2|3`, liczba równoległych procesów: `--parallel N
 ## Pokaz krok po kroku
 
 ```bash
+# 0. na żywo w oknie: losowe drapieżniki (lewa plansza) vs wytrenowane (prawa), te same seedy
+#    (spacja – pauza, → – następny epizod, ↑/↓ – tempo, Esc – wyjście)
+python demo.py --right-pred runs/predator_mappo_adv3_spd1.0_s0
+python demo.py --left-pred runs/predator_ippo_adv3_spd1.0_s0 --right-pred runs/predator_mappo_adv3_spd1.0_s0
+python demo.py --left-pred runs/predator_mappo_adv3_spd1.0_s0/ckpt_500k.pt \
+               --right-pred runs/predator_mappo_adv3_spd1.0_s0            # w trakcie vs po treningu
+python demo.py --left-pred runs/<zamrożone> --right-pred runs/<zamrożone> \
+               --right-prey runs/prey_mappo_..._s0                        # losowa vs wyuczona ofiara
+
 # 1. trening na żywo (ok. 2 min) – co 25 iteracji linia z ewaluacją: kolizje/ep i % złapań rosną
 python ppo.py --team predator --algo mappo --total-steps 200000 --run-dir runs/demo
 
@@ -138,6 +147,7 @@ Wykresy (`results/`): `learning_curves_default.png`, `learning_curves_variants.p
 | `run_experiments.py` | cały zestaw eksperymentów (fazy 1–3), równolegle |
 | `evaluate.py` | ewaluacja wytrenowanych / losowych polityk; `--suite` = wszystkie runy |
 | `plot_results.py` | krzywe uczenia, wykresy porównawcze, `summary.md` |
+| `demo.py` | pokaz na żywo: dwie polityki obok siebie na tych samych seedach |
 | `record_agents.py` | film z wytrenowanymi agentami |
 | `baseline_eval.py`, `record_random.py` | ewaluacja i film losowego baseline'u (etap 1) |
 | `runs/` | treningi: checkpointy i logi (poza gitem) |
