@@ -6,3 +6,5 @@ matplotlib
 imageio
 imageio-ffmpeg
 pillow
+torch
+pandas

@@ -17,3 +17,7 @@ wandb/
 checkpoints/
 *.pt
 *.pth
+
+# Testy potoku (run_experiments.py --quick)
+runs_quick/
+results_quick/

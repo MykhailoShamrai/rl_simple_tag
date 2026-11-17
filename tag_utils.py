@@ -32,11 +32,11 @@ def _move_towards(delta: np.ndarray) -> int:
     return UP if delta[1] > 0 else DOWN
 
 
-def random_policy(env, agent, rng):
+def random_policy(env, agent, rng, obs=None):
     return int(rng.integers(env.action_space(agent).n))
 
 
-def greedy_chase_policy(env, agent, rng):
+def greedy_chase_policy(env, agent, rng, obs=None):
     """Heurystyka drapieżnika: biegnij prosto do najbliższej ofiary."""
     world = env.unwrapped.world
     me = next(a for a in world.agents if a.name == agent)
@@ -45,7 +45,7 @@ def greedy_chase_policy(env, agent, rng):
     return _move_towards(target.state.p_pos - me.state.p_pos)
 
 
-def flee_policy(env, agent, rng):
+def flee_policy(env, agent, rng, obs=None):
     """Heurystyka ofiary: uciekaj od najbliższego drapieżnika, ale nie wychodź poza obszar."""
     world = env.unwrapped.world
     me = next(a for a in world.agents if a.name == agent)
@@ -66,6 +66,9 @@ POLICIES = {
 
 def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None):
     """Rozgrywa jeden epizod i zwraca słownik metryk.
+
+    Polityka to funkcja `policy(env, agent, rng, obs) -> akcja`, gdzie `obs` to obserwacja agenta
+    (polityki bazowe jej nie używają, wyuczone – tak, zob. `ppo.TeamPolicy.as_policy_fn`).
 
     Jeśli podano listę `frames`, dopisywane są do niej klatki renderu; jeśli `coll_trace`,
     to skumulowana liczba kolizji po każdej klatce (do podpisów w filmie).
@@ -97,10 +100,10 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None
 
     while env.agents:
         actions = {
-            a: (adv_policy if a.startswith("adversary") else prey_policy)(env, a, rng)
+            a: (adv_policy if a.startswith("adversary") else prey_policy)(env, a, rng, obs[a])
             for a in env.agents
         }
-        _, rew, term, trunc, _ = env.step(actions)
+        obs, rew, term, trunc, _ = env.step(actions)
         m["steps"] += 1
         m["adv_return"] += rew[adv_name]
         m["prey_return"] += sum(rew[p.name] for p in prey)
