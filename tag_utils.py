@@ -78,6 +78,7 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None
       first_catch     – krok pierwszego złapania (NaN, gdy brak)
       caught          – 1, jeśli w epizodzie doszło do złapania
       boundary_pen    – kara ofiar za wychodzenie poza obszar (dodatnia wartość)
+      out_steps       – liczba kroków ofiar poza planszą (|x| lub |y| > 1), zsumowana po ofiarach
       mean_min_dist   – średni dystans ofiara–najbliższy drapieżnik
     """
     rng = np.random.default_rng(seed)
@@ -88,7 +89,7 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None
     adv_name = advs[0].name
 
     m = dict(adv_return=0.0, prey_return=0.0, collisions=0, caught_steps=0,
-             first_catch=np.nan, boundary_pen=0.0, dist_sum=0.0, steps=0)
+             first_catch=np.nan, boundary_pen=0.0, out_steps=0, dist_sum=0.0, steps=0)
     if frames is not None:
         frames.append(env.render())
     if coll_trace is not None:
@@ -114,6 +115,7 @@ def run_episode(env, adv_policy, prey_policy, seed, frames=None, coll_trace=None
         for p in prey:
             coll_pen = 10 * sum(scen.is_collision(a, p) for a in advs)
             m["boundary_pen"] += -(rew[p.name] + coll_pen)
+            m["out_steps"] += int(np.any(np.abs(p.state.p_pos) > 1.0))
             m["dist_sum"] += min(np.linalg.norm(p.state.p_pos - a.state.p_pos) for a in advs)
         if frames is not None:
             frames.append(env.render())

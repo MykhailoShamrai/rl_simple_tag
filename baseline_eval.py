@@ -16,7 +16,7 @@ import numpy as np
 from tag_utils import POLICIES, make_env, run_episode
 
 METRICS = ["adv_return", "prey_return", "collisions", "caught", "caught_steps", "first_catch",
-           "boundary_pen", "mean_min_dist"]
+           "boundary_pen", "out_steps", "mean_min_dist"]
 
 
 def evaluate(env_kwargs, adv, prey, episodes, seed0=10_000):
@@ -51,7 +51,7 @@ def main():
         for n in [1, 2, 3, 4]:
             experiments.append(("num_adversaries", n, dict(max_cycles=mc, num_adversaries=n), adv, prey))
         for sp in [0.5, 0.75, 1.0, 1.25]:
-            experiments.append(("prey_speed", sp, dict(max_cycles=mc, prey_speed=sp), adv, prey))
+            experiments.append(("prezoby_speed", sp, dict(max_cycles=mc, prey_speed=sp), adv, prey))
         for n in [0, 2, 4]:
             experiments.append(("num_obstacles", n, dict(max_cycles=mc, num_obstacles=n), adv, prey))
 
