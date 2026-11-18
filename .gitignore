@@ -21,3 +21,6 @@ checkpoints/
 # Testy potoku (run_experiments.py --quick)
 runs_quick/
 results_quick/
+
+# Wytrenowane modele udostępniane w repo (kopie final.pt z runs/)
+!models/*/final.pt

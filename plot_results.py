@@ -111,7 +111,7 @@ def plot_default(runs, ev, out):
             hline(ax, None if b is None else b * scale, "losowe drapieżniki")
         ax.set_title(title, loc="left")
         ax.set_xlabel("kroki środowiska [mln]")
-    axs[0, 0].legend(loc="lower right")
+    axs[0, 0].legend(loc="lower right", bbox_to_anchor=(1, 0.1))
     fig.suptitle("Drapieżniki vs losowa ofiara – 3 drapieżniki, prędkość ofiary 1.0×",
                  color=INK, fontweight="bold", x=0.01, ha="left")
     fig.savefig(out / "learning_curves_default.png", dpi=150)
@@ -134,7 +134,7 @@ def plot_variants(runs, ev, out):
         ax.set_title(f"{n} drapieżniki, ofiara {sp}×", loc="left")
         ax.set_xlabel("kroki [mln]")
     axs[0, 0].set_ylabel("kolizje / epizod")
-    axs[0, 0].legend(loc="lower right")
+    axs[0, 0].legend(loc="lower right", bbox_to_anchor=(1, 0.1))
     fig.savefig(out / "learning_curves_variants.png", dpi=150)
     plt.close(fig)
 
@@ -210,23 +210,24 @@ def plot_speed(ev, out):
     if pr.empty:
         return
     fig, ax = plt.subplots(figsize=(6.5, 4.6), constrained_layout=True)
-    b = base.groupby("prey_speed")["caught"].mean() * 100
+    b = base.groupby("prey_speed")["collisions"].mean()
     ax.plot(b.index, b.values, color=COLORS["random"], ls="--", marker="o", ms=6,
             label="losowe drapieżniki")
     for algo in ("ippo", "mappo"):
         a = pr[pr.algo == algo]
-        fixed = a[a.train_prey_speed == 1.0].groupby("prey_speed")["caught"]
+        fixed = a[a.train_prey_speed == 1.0].groupby("prey_speed")["collisions"]
         if len(fixed):
-            m = fixed.mean() * 100
-            ax.errorbar(m.index, m.values, yerr=fixed.std().fillna(0) * 100, color=COLORS[algo],
+            m = fixed.mean()
+            ax.errorbar(m.index, m.values, yerr=fixed.std().fillna(0), color=COLORS[algo],
                         marker="o", ms=6, capsize=3, label=f"{LABELS[algo]} trenowane przy 1.0×")
-        matched = a[a.train_prey_speed == a.prey_speed].groupby("prey_speed")["caught"]
+        matched = a[a.train_prey_speed == a.prey_speed].groupby("prey_speed")["collisions"]
         if matched.ngroups > 1:
-            m = matched.mean() * 100
+            m = matched.mean()
             ax.plot(m.index, m.values, color=COLORS[algo], ls=":", marker="s", ms=6,
                     label=f"{LABELS[algo]} trenowane przy tej prędkości")
     ax.set_xlabel("prędkość ofiary w teście (× domyślnej)")
-    ax.set_ylabel("% epizodów ze złapaniem")
+    ax.set_ylabel("kolizje / epizod")
+    ax.set_ylim(bottom=0)
     ax.set_title("Uogólnianie na prędkość ofiary (3 drapieżniki)", loc="left")
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, fontsize=8)
     fig.savefig(out / "speed_generalization.png", dpi=150)
@@ -259,6 +260,9 @@ def write_summary(ev, out):
         lines.append("")
 
     own = ev[ev.kind.isin(["predator", "baseline"]) & (ev.prey_speed == ev.train_prey_speed)]
+    trained = set(zip(own[own.kind == "predator"].train_num_adversaries,
+                      own[own.kind == "predator"].train_prey_speed))
+    own = own[[c in trained for c in zip(own.train_num_adversaries, own.train_prey_speed)]]
     table(own, ["train_num_adversaries", "train_prey_speed", "algo"],
           "Drapieżniki vs losowa ofiara (konfiguracja treningowa)")
     gen = ev[(ev.kind == "predator") & (ev.train_num_adversaries == 3) &

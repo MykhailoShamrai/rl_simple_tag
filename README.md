@@ -8,6 +8,9 @@ niż niezależne uczenie (IPPO) i od czego zależy ta różnica (liczba drapież
 zasięg obserwacji)? W drugim kroku: czy ofiara nauczy się uciekać przed zamrożonymi, wytrenowanymi
 drapieżnikami.
 
+**Wyniki punktu kontrolnego 2:** [docs/punkt_kontrolny_2.md](docs/punkt_kontrolny_2.md) ·
+**Wytrenowane modele:** [models/](models/README.md) (w komendach poniżej można użyć `models/<run>` zamiast `runs/<run>`)
+
 **Podejście sekwencyjne (bez self-play):**
 1. drapieżniki (IPPO / MAPPO) uczą się przeciw stałej, losowej ofierze,
 2. najlepsze drapieżniki są zamrażane, a ofiara (IPPO / MAPPO) uczy się przeciw nim.

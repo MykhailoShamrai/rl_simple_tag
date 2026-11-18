@@ -1,0 +1,9 @@
+Zamrożone drapieżniki dla fazy 2 (najwięcej kolizji/epizod w ostatniej ewaluacji):
+predator_ippo_adv3_spd1.0_s0: 6.84
+predator_ippo_adv3_spd1.0_s1: 6.65
+predator_ippo_adv3_spd1.0_s2: 6.26
+predator_mappo_adv3_spd1.0_s0: 6.59
+predator_mappo_adv3_spd1.0_s1: 6.94
+predator_mappo_adv3_spd1.0_s2: 6.79
+
+wybrano: models/predator_mappo_adv3_spd1.0_s1/final.pt (kopia z runs/)
