@@ -47,6 +47,49 @@ Skrypt jest idempotentny: ukończone treningi pomija, przerwane wznawia. Zatrzym
 (lub `kill <PID>`) – każdy trening zapisuje checkpoint; ponowne `python run_experiments.py` kontynuuje.
 Pojedyncze fazy: `--phase 1|2|3`, liczba równoległych procesów: `--parallel N`.
 
+## Pokaz na żywo – gotowe warianty (`demo.py`)
+
+Dwie plansze obok siebie, **te same seedy** (identyczne pozycje startowe), pod planszami bieżąca
+średnia kolizji / epizod i % złapań. Klawisze: spacja – pauza, → / `n` – następny epizod,
+↑ / ↓ – tempo, Esc / `q` – zamknięcie okna.
+
+Wszystkie warianty naraz – zamknięcie okna (Esc) uruchamia następny:
+
+```bash
+./demo_tour.sh              # warianty 1–12 po kolei
+./demo_tour.sh -l           # lista wariantów
+./demo_tour.sh 1 2 9        # tylko wybrane
+DEMO_ARGS="--greedy --fps 6" ./demo_tour.sh 1 9    # dodatkowe flagi demo.py
+```
+
+| # | Co pokazuje | Komenda (`P=models/predator_mappo_adv3_spd1.0_s1` – zamrożone drapieżniki) |
+|---|---|---|
+| 1 | losowe vs wytrenowane drapieżniki | `python demo.py --right-pred $P` |
+| 2 | IPPO vs MAPPO | `python demo.py --left-pred models/predator_ippo_adv3_spd1.0_s0 --right-pred models/predator_mappo_adv3_spd1.0_s0` |
+| 3 | postęp: 0.5 mln vs 3 mln kroków ¹ | `python demo.py --left-pred runs/predator_mappo_adv3_spd1.0_s0/ckpt_500k.pt --right-pred runs/predator_mappo_adv3_spd1.0_s0` |
+| 4 | 2 drapieżniki | `python demo.py --right-pred models/predator_mappo_adv2_spd1.0_s0` |
+| 5 | 4 drapieżniki | `python demo.py --right-pred models/predator_mappo_adv4_spd1.0_s0` |
+| 6 | wolna ofiara 0.75× | `python demo.py --right-pred models/predator_mappo_adv3_spd0.75_s0` |
+| 7 | szybka ofiara 1.25× | `python demo.py --right-pred models/predator_mappo_adv3_spd1.25_s0` |
+| 8 | uogólnianie: trening 1.0×, test 1.25× | `python demo.py --right-pred models/predator_mappo_adv3_spd1.0_s0 --prey-speed 1.25` |
+| 9 | losowa vs wyuczona ofiara | `python demo.py --left-pred $P --right-pred $P --right-prey models/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0` |
+| 10 | ofiara IPPO vs MAPPO | `python demo.py --left-pred $P --left-prey models/prey_ippo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0 --right-pred $P --right-prey models/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0` |
+| 11 | postęp ofiary: 0.5 mln vs 5 mln kroków ¹ | `python demo.py --left-pred $P --left-prey runs/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0/ckpt_500k.pt --right-pred $P --right-prey runs/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0` |
+| 12 | ofiara vs drapieżniki, których nie widziała w treningu | `python demo.py --left-pred $P --left-prey models/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0 --right-pred models/predator_ippo_adv3_spd1.0_s0 --right-prey models/prey_mappo_adv3_spd1.0_vs-predator_mappo_adv3_spd1.0_s1_s0` |
+
+¹ checkpointy pośrednie są tylko lokalnie w `runs/` (poza gitem) – bez nich `demo_tour.sh` pomija warianty 3 i 11.
+
+**Specyfikacja polityki** (`--left-pred`, `--left-prey`, `--right-pred`, `--right-prey`): `random`,
+katalog runu (`final.pt`, a gdy go brak – `latest.pt`) albo konkretny plik (`ckpt_<N>k.pt`, `best.pt`, …).
+Bez `--right-pred` jest jedna plansza. Pozostałe flagi: `--greedy` (argmax zamiast próbkowania),
+`--fps N` (domyślnie 8), `--max-cycles N` (dłuższe epizody; trening: 25), `--prey-speed v`, `--seed N`
+(domyślnie 10000 – pierwszy seed ewaluacji).
+
+**Ograniczenie:** obie plansze muszą mieć tę samą konfigurację środowiska (liczba drapieżników,
+prędkość ofiary, `max_cycles` zapisane w checkpoincie) – np. `adv2` obok `adv3` się nie uruchomi.
+Polityka `random` przejmuje konfigurację z drugiej planszy. Modele ofiary pasują tylko do drapieżników
+`adv3_spd1.0`.
+
 ## Pokaz krok po kroku
 
 ```bash
@@ -151,6 +194,7 @@ Wykresy (`results/`): `learning_curves_default.png`, `learning_curves_variants.p
 | `evaluate.py` | ewaluacja wytrenowanych / losowych polityk; `--suite` = wszystkie runy |
 | `plot_results.py` | krzywe uczenia, wykresy porównawcze, `summary.md` |
 | `demo.py` | pokaz na żywo: dwie polityki obok siebie na tych samych seedach |
+| `demo_tour.sh` | wszystkie warianty pokazu po kolei (lub wybrane numery) |
 | `record_agents.py` | film z wytrenowanymi agentami |
 | `baseline_eval.py`, `record_random.py` | ewaluacja i film losowego baseline'u (etap 1) |
 | `runs/` | treningi: checkpointy i logi (poza gitem) |

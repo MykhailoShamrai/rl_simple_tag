@@ -51,7 +51,7 @@ TRAIN_SEED0 = 1_000_000_000    # seedy resetów w treningu: rozłączne z ewalua
 class Config:
     # co i jak uczymy
     team: str = "predator"            # predator | prey
-    algo: str = "mappo"               # ippo | mappo
+    algo: str = "mappo"  # ippo | mappo
     opponent: str = "random"          # random | ścieżka do checkpointu (.pt) lub katalogu runu
     seed: int = 0
     total_steps: int = 3_000_000      # kroki środowiska (jeden krok = ruch wszystkich agentów)
